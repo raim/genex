@@ -4,7 +4,7 @@ source("../R/genex.R")
 
 ## growth and protein degradation rates
 mu <- 0.029 # h-1, 1 division per day - mu = log(2)/24
-dy <- 0.07  # h-1, protein degradation rate, ASV-tagged mVenus
+dy <- 0.07  # h-1, protein degradation rate, ASV-tagged mVenus 
 beta <- mu + dy
 
 ### INDUCER-SPECIFIC PARAMETERS

@@ -66,7 +66,9 @@ well for the observed inducer half-lives.
 ## Parameter Fitting Strategy
 
 1. Calculate growth rate $\mu$ for all experiments,
-2. Estimate $y_0$ from 0 inducer for each promoter.
+2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose experiment
+after step-down to get ASV-tagged protein degradation rate $\delta_P$,
+3. Estimate $y_0$ from 0 inducer for each promoter.
 
 These parameters should now remain unchanged. Use the correct set 
 for each fit. Consider which parameters are shared between which 
@@ -80,13 +82,13 @@ Manually estimate parameter ranges and start values for variable parameters
 to (a) make physical/biological sense, and (b) roughly cover the range of 
 observed values.
 
-3. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
+4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
 half-life $\delta$,
-4. Use obtained parameters as initial values and fit half-lives $\delta$ from
+5. Use obtained parameters as initial values and fit half-lives $\delta$ from
 time-series experiments,
-5. Iterate the above procedure until all shared parameters converge.
+6. Iterate the above procedure until all shared parameters converge.
 
-Steps 3-5 could be implemented in an automated loop.
+Steps 4-6 could be implemented in an automated loop.
 
 ## Example
 
