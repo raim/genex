@@ -22,6 +22,9 @@ delta <- log(2)/tI # h-1, degradation rate aTc
 ## NOTE: with current parameters, we already run into convergence problems at delta~0.001
 #delta <- 0.011
 
+## experimental conditions
+time <- 0:150
+I0 <- c(0,10^seq(-1,4,.1)) # initial inducer concentration
 
 
 par(mfcol=c(2,1), mai=c(.5,.5,.1,.1), mgp=c(1.3,.4,0),tcl=-.25)
@@ -59,7 +62,7 @@ legend("bottomright",paste("at",ts,"h"),
 time <- 0:100
 plot(1, col=NA,  ylim=ylim,xlim=range(time),
      xlab="time, h", ylab="fluorescence/OD, au")
-for ( delta in seq(0,5,.05)) {
+for ( delta in seq(0,5,.05)/10 ) {
     ## NOTE: instabilities also at higher delta!
     yt1 <- fexpr(time=time, I0=1000, delta=delta, beta=beta, 
                  y0=y0, n=n, K=K, l=l, v=v, method="laurent")
@@ -72,6 +75,6 @@ plot(1, col=NA, ylim=ylim, xlim=c(0.1,max(I0)),
 for ( tm in seq(0,72,5)) {
   yt1 <- fexpr(time=tm, I0=I0, delta=log(2)/24, beta=beta, 
                y0=y0, n=n, K=K, l=l, v=v, method="laurent")
-  lines(I0,yt1)
+  lines(I0,yt1,col=1+as.numeric(tm>24))
 }
 

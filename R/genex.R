@@ -1,4 +1,3 @@
-library(gsl) # hypergeometric function solver
 Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
   
   if ( sum(c(length(a)>1, length(b)>1, length(c)>1, length(x)>1))>1 )
@@ -11,22 +10,22 @@ Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
   y <- rep(list(NA),length(x))
   for ( i in 1:length(x) )
     if( abs(x[i]) < 1 ) {
-      y[[i]] <- hyperg_2F1(a,b,c,x[i])
+      y[[i]] <- gsl::hyperg_2F1(a,b,c,x[i])
     } else {
         if ( method[1]=="forrey" ) {
             w <- 1/(1-x[i])
-            A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*hyperg_2F1(a,c-b,a-b+1,w)
-            B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*hyperg_2F1(b,c-a,b-a+1,w)
+            A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*gsl::hyperg_2F1(a,c-b,a-b+1,w)
+            B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*gsl::hyperg_2F1(b,c-a,b-a+1,w)
             ##if ( is.na(A) ) A <- 0
             ##if ( is.na(B) ) B <- 0
             y[[i]] <- A+B
         } else if (method[1]=="laurent" ) # Stephane Laurent's version
-            y[[i]] <- hyperg_2F1(c-a,b,c,1-1/(1-x[i]))/(1-x[i])^b 
+            y[[i]] <- gsl::hyperg_2F1(c-a,b,c,1-1/(1-x[i]))/(1-x[i])^b 
     }
   unlist(y)
 }
 ## induced protein expression in growing cultures, with half-life of inducer
-## analytic solution, protein
+## analytic solution, protein level y(t)
 fexpr <- function(delta, time=seq(1,10,.1), I0=10, y0=50,
                   n=2, K=100, l=1, v=100, beta=.1,
                   method=c("forrey","laurent")) {
