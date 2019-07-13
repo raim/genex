@@ -78,3 +78,12 @@ for ( tm in seq(0,72,5)) {
   lines(I0,yt1,col=1+as.numeric(tm>24))
 }
 
+
+## use nlm to fit
+
+## generate data with noise
+yt <- fexpr(time=time, I0=1000, delta=log(2)/24, beta=beta, 
+            y0=y0, n=n, K=K, l=l, v=v, method="laurent")
+yn <- yt + rnorm(length(time),mean=0, sd=50)
+plot(time,yt,type="l")
+points(time,yn)

@@ -1,12 +1,20 @@
 Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
-  
-  if ( sum(c(length(a)>1, length(b)>1, length(c)>1, length(x)>1))>1 )
+
+  ## TODO: avoid this and allow vectors of equal length
+  ## the loop below, checking for x values, must be re-formulated
+  if ( sum(as.numeric(c(length(a)>1, length(b)>1, 
+                        length(c)>1, length(x)>1)))>1 )
     stop("Gauss2F1: only one parameter can be a vector")
+  
   ## NOTE: for |z|>1 we use the transformation recommended in
   ## R.C. Forrey: Computing the Hypergeometric Function
   ## JOURNAL OF COMPUTATIONAL PHYSICS137,79–100 (1997)
-  ## Stephane Laurent's version from stackoverflow seems both more
+  ## Stephane Laurent's version from stackexchange seems both more
   ## efficient and also much more stable for some small delta
+  ## https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
+  
+  ## loop through x to check values
+  ## TODO: use apply?
   y <- rep(list(NA),length(x))
   for ( i in 1:length(x) )
     if( abs(x[i]) < 1 ) {
@@ -14,10 +22,10 @@ Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
     } else {
         if ( method[1]=="forrey" ) {
             w <- 1/(1-x[i])
-            A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*gsl::hyperg_2F1(a,c-b,a-b+1,w)
-            B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*gsl::hyperg_2F1(b,c-a,b-a+1,w)
-            ##if ( is.na(A) ) A <- 0
-            ##if ( is.na(B) ) B <- 0
+            A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))
+            A <- A*gsl::hyperg_2F1(a,c-b,a-b+1,w)
+            B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))
+            B <- B*gsl::hyperg_2F1(b,c-a,b-a+1,w)
             y[[i]] <- A+B
         } else if (method[1]=="laurent" ) # Stephane Laurent's version
             y[[i]] <- gsl::hyperg_2F1(c-a,b,c,1-1/(1-x[i]))/(1-x[i])^b 
@@ -30,7 +38,17 @@ fexpr <- function(delta, time=seq(1,10,.1), I0=10, y0=50,
                   n=2, K=100, l=1, v=100, beta=.1,
                   method=c("forrey","laurent")) {
   
+  ## TODO: fix this - they could be vectors but 2F1 interface
+  ## does currently not allow it
+  if ( any(c(length(n)>1, length(beta)>1,length(delta)>1)))
+    stop("fexpr: currently n, beta and delta can not be vectors")
+  if ( sum(as.numeric(c(length(time)>1, length(I0)>1, 
+                        length(y0)>1, length(K)>1, 
+                        length(l)>1, length(v)>1)))>1 ) 
+    stop("fexpr: only one parameter can be a vector")
+  
   y <- rep(list(NA),length(I0))
+  ## TODO: use apply instead of loop
   for ( i in 1:length(I0) ) {
     i0 <- I0[i]  
     if ( delta == 0 | i0 == 0) {
