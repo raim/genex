@@ -4,7 +4,7 @@ source("../R/genex.R")
 
 ## growth and protein degradation rates
 mu <- 0.029 # h-1, 1 division per day - mu = log(2)/24
-dy <- 0.07  # h-1, protein degradation rate, ASV-tagged mVenus 
+dy <- 0.2  # h-1, protein degradation rate, ASV-tagged mVenus 
 beta <- mu + dy
 
 ### INDUCER-SPECIFIC PARAMETERS
@@ -19,8 +19,9 @@ tI <- 17.5 # h, half-life aTc
 delta <- log(2)/tI # h-1, degradation rate aTc
 #delta <- 0 # for rhamnose?
 
-## NOTE: with current parameters, we already run into convergence problems at delta~0.001
-#delta <- 0.011
+## NOTE: with current parameters, stability problems at
+##  delta<.001 and delta>9 (see scan below)
+# delta <- 0.001
 
 ## experimental conditions
 time <- 0:150
@@ -62,11 +63,12 @@ legend("bottomright",paste("at",ts,"h"),
 time <- 0:100
 plot(1, col=NA,  ylim=ylim,xlim=range(time),
      xlab="time, h", ylab="fluorescence/OD, au")
-for ( delta in seq(0,5,.05)/10 ) {
-    ## NOTE: instabilities also at higher delta!
-    yt1 <- fexpr(time=time, I0=1000, delta=delta, beta=beta, 
-                 y0=y0, n=n, K=K, l=l, v=v, method="laurent")
-    lines(time,yt1)
+for ( delta in seq(0,8,.05)/10 ) {
+  ## NOTE: instabilities also at delta>8 at later time-points!
+  ## sudden decrease to 0
+  yt1 <- fexpr(time=time, I0=1000, delta=delta, beta=beta, 
+               y0=y0, n=n, K=K, l=l, v=v, method="laurent")
+  lines(time,yt1)
 }
 
 I0 <- seq(0,1000,10) #c(0,10^seq(-2,4,.1))
@@ -78,11 +80,16 @@ for ( tm in seq(0,72,5)) {
   lines(I0,yt1,col=1+as.numeric(tm>24))
 }
 
+## rhamnose step-down experiment - to fit degradation rate
+yt <- fexpr(time=time, I0=0, delta=log(2)/24, beta=.2, 
+            y0=6000, n=n, K=K, l=l, v=v, method="laurent")
+plot(time, yt)
+plot(time, log(yt))
 
 ## use nlm to fit
 
 ## generate data with noise
-yt <- fexpr(time=time, I0=1000, delta=log(2)/24, beta=beta, 
+yt <- fexpr(time=time, I0=1000, delta=0.1, beta=beta, 
             y0=y0, n=n, K=K, l=l, v=v, method="laurent")
 yn <- yt + rnorm(length(time),mean=0, sd=50)
 plot(time,yt,type="l")

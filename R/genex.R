@@ -59,7 +59,7 @@ fexpr <- function(delta, time=seq(1,10,.1), I0=10, y0=50,
                     beta/(n*delta)+1, 
                     -exp(n*delta*time)*K^n/i0^n, method=method[1])
     }
-    if ( any(A<0) ) warning("non-physical value for A")
+    if ( any(A<0, na.rm=TRUE) ) warning("non-physical value for A")
     y[[i]] <- y0*exp(-beta*time) + (l + v*A)/beta * (1-exp(-beta*time)) 
   }
   y <- unlist(y)
