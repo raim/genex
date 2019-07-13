@@ -1,0 +1,302 @@
+---
+title: "genex"
+author: "Anna German & Rainer Machne"
+date: "July 12, 2019"
+bibliography: genex.bib
+output: 
+    pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Induced Gene Expression with Inducer Half-Live
+
+Assuming that the inducer half-life $t_{1/2}=\frac{\log 2}{\delta}$ is not affected by metabolism, and that the measured fluorescence per OD is linearly related to protein concentration, $f_\text{OD}\sim y(t)$, we can describe the measured data as:
+
+\begin{equation}
+\label{eq:de}
+\begin{aligned}
+\beta &= \mu + \delta_P\\
+I(t) &= I_0 e^{-\delta t}\\
+\alpha(t) &= \ell + v \frac{I^n}{I^n+K^n}\\
+\frac{\text{d}y}{\text{d} t} = y' &= \alpha - \beta y
+\end{aligned}
+\end{equation}
+
+with culture growth rate $\mu$ and AVS-tagged protein degradation rate $\delta_P$, 
+basal ("leaky") transcription rate $\ell$, maximal induced transcription rate
+$v$, half-maximal inducer concentration $K$ and number of inducer binding
+sites $n$, and  initial inducer concentration $I_0$ and inducer degradation 
+rate $\delta$.
+
+This inhomogenous first-order differential equation can be solved easily for constant inducer, $\delta=0$, (Appendix I):
+
+\begin{equation}
+\label{eq:consti}
+y(t) = y_0 e^{-\beta t} +\frac{1- e^{-\beta t}}{\beta} \left(\ell + v \frac{I^n}{I^n+K^n}\right)\,.
+\end{equation}
+
+An analytic solution for the general case, $\delta >0$, is somewhat harder. 
+The integration routine of the [Wolfram alpha
+web service](https://www.wolframalpha.com/input/) provides the solution
+which simply replaces the activation term with the hypergeometric function $_2\text{F}_1$:
+
+\begin{equation}
+\label{eq:vari}
+y(t) = y_0 e^{-\beta t} + \frac{1- e^{-\beta t}}{\beta}\left(\ell + v\; _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)\right)\,.
+\end{equation}
+
+$_2\text{F}_1$ is implemented in the GNU Scientific Library (GSL), 
+but requires certain transformations of the variables [@Forrey1997] to ensure
+convergence (Appendix II). For our model $_2\text{F}_1$ is well defined only
+for $\delta>0$ and $I_0>0$ and we use eq.(\ref{eq:consti}) for $I_0=0$ or 
+$\delta=0$ (no or constant inducer) and eq.(\ref{eq:vari}) for $\delta>0$. 
+
+We observed numerical stability problems for too small $\delta$, esp. when combined 
+with small $I_0$. A more stable implementation of $_2\text{F}_1$ 
+or the required transformations would be desirable. Alternatively,
+a scaling to relative time $t/\delta$ may avoid the problematic
+terms. However, the approach worked
+well for the observed inducer half-lives. 
+
+\newpage
+
+## Parameter Fitting Strategy
+
+1. Calculate growth rate $\mu$ for all experiments,
+2. Estimate $y_0$ from 0 inducer for each promoter.
+
+These parameters should now remain unchanged. Use the correct set 
+for each fit. Consider which parameters are shared between which 
+experiments, eg. all experiments are done with ASV-tagged 
+mVenus, so the protein degration rate $\delta_P$ should be the
+same for all experiments. Leaky transcription rate $l$ and
+initial concentration $y_0$ should be the
+same for all experiments using the same promoter, independent of
+induction strength.
+Manually estimate parameter ranges and start values for variable parameters 
+to (a) make physical/biological sense, and (b) roughly cover the range of 
+observed values.
+
+3. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
+half-life $\delta$,
+4. Use obtained parameters as initial values and fit half-lives $\delta$ from
+time-series experiments,
+5. Iterate the above procedure until all shared parameters converge.
+
+Steps 3-5 could be implemented in an automated loop.
+
+## Example
+
+
+```{r functions, echo=FALSE, warning=FALSE}
+source("../R/genex.R")
+### GENERAL EXPERIMENT PARAMETERS 
+## experiment time
+time <- seq(0,200,5) # h
+
+## inducer concentrations 
+I0 <- c(0,10^seq(-1,4,.1)) # TODO: unit
+
+## growth and protein degradation rates
+mu <- 0.029 # h-1, 1 division per day - mu = log(2)/24
+dy <- 0.07  # h-1, protein degradation rate, ASV-tagged mVenus
+beta <- mu + dy
+
+### INDUCER-SPECIFIC PARAMETERS
+y0 <- 50 # intial protein concentration
+n <- 2   # Hill factor, ~ number of binding sites 
+K <- 100 # half-maximal concentration 
+l <- 1   # uninduced "leaky" transcription
+v <- 100 # maximal induced transcription
+
+## INDUCER HALF-LIFE - constant inducer over time
+tI <- 17.5 # h, half-life aTc
+delta <- log(2)/tI # h-1, degradation rate aTc
+#delta <- 0 # for rhamnose?
+
+## NOTE: with current parameters, we already run into convergence problems at delta~0.001
+#delta <- 0.011
+
+```
+
+```{r plot, echo=FALSE, warning=FALSE}
+par(mfcol=c(2,1), mai=c(.5,.5,.1,.1), mgp=c(1.3,.4,0),tcl=-.25)
+i0 <- c(10000, 100)
+ts <- c(24,48)
+yt1 <- fexpr(time=time, I0=i0[1], delta=delta, beta=beta, 
+             y0=y0, n=n, K=K, l=l, v=v)
+yt2 <- fexpr(time=time, I0=i0[2], delta=delta, beta=beta, 
+             y0=y0, n=n, K=K, l=l, v=v)
+yi1 <- fexpr(time=ts[2], I0=I0, delta=delta, beta=beta, 
+             y0=y0, n=n, K=K, l=l, v=v)
+yi2 <- fexpr(time=ts[1], I0=I0, delta=delta, beta=beta, 
+             y0=y0, n=n, K=K, l=l, v=v)
+
+ys <- c(yt1,yt2,yi1,yi2)
+ys <- ys[is.finite(ys)]
+ylim <- c(0, max(ys,na.rm=TRUE))
+
+plot(time, yt1, type="b", pch=19, cex=.5, ylim=ylim,
+     ylab="fluorescence/OD, a.u.", xlab="time, h")
+lines(time, yt2, col=2, type="b", pch=19, cex=.5)
+legend("topright",legend=c(as.expression(bquote(I[0] ~":"~.(i0[1]))),
+                           bquote(I[0]~":"~.(i0[2]))),
+       title=paste0("half-life: ",tI, ",h"), col=1:2,lty=1,pch=19,pt.cex=.5)
+abline(v=ts, col=3:4, lty=1)
+plot(I0, yi1, type="b", col=4, lty=1, pch=19, cex=.5,
+     log="x",ylim=ylim,xlim=c(1,max(I0)),
+     xlab="inducer concentration", ylab="fluorescence/OD, au")
+lines(I0, yi2, type="b", col=3, lty=1, pch=19, cex=.5)
+abline(v=i0,col=1:2)
+legend("bottomright",paste("at",ts,"h"),
+       title=paste0("half-life: ",tI, ",h"),
+       col=3:4,lty=1,pch=19,pt.cex=.5)
+```
+
+\newpage
+# APPENDIX
+
+## Appendix I: Induced Transcription with Constant Inducer
+
+The "inhomogenous linear first order differential equation", 
+$$
+y'(t) + \beta y(t) = \alpha\,,
+$$ 
+can be solved by adding a particular solution $y_p$ of the inhomogenous
+equation and the general solution $y_h$ of the homogenous version of the equation 
+(with $\alpha=0$).
+
+The general solution is $y_h = C e^{-\beta t}$, and the particular solution
+is simply $y_p=\frac{\alpha}{\beta}$, and we get:
+
+$$
+y(t) = y_p+y_h = \frac{\alpha}{\beta} + C e^{-\beta t}\,.
+$$
+
+
+Assuming an initial condition $y(0)=y_0$ we further get $C=y_0-\frac{\alpha}{\beta}$, and
+
+$$
+y(t) = y_0 e^{-\beta t} + \frac{\alpha}{\beta} \left(1 - e^{-\beta t}\right)\,.
+$$
+
+## Appendix II: Induced Transcription with Inducer Half-Life
+
+Here the factor $\alpha$ itself is a function of time $t$,
+and can use the "Variation of the Constant" method, where the
+constant $C$ of the solution of the homogenous equation is replaced
+by a function $f(t)$, ie.
+
+\begin{equation}
+\label{eq:voc}
+y(t) = f(t)\,e^{-\beta t}
+\end{equation}
+
+Using this in the full equation, we get:
+
+$$
+f'(t) e^{-\beta t} + f(t) e^{-\beta t} (-\beta) + \beta f(t) e^{-\beta t} = \alpha(t)\,
+$$
+where two terms on the left-hand side cancel out, and we need to integrate to get $f(t)$:
+
+$$
+f(t) = \int \alpha(t) e^{\beta t} \text{d}t + C 
+$$
+
+Let's first make it simple, and assume a linear induction with $I\ll K$, with
+
+$$
+\alpha(t) \approx v \frac{I_0 e^{-\delta t}}{K}\,.
+$$
+This is comparatively easy to integrate and yields
+
+$$
+f(t) = \frac{v}{\beta - \delta} \frac{I_0}{K} e^{(\beta-\delta)t} + C\,.
+$$
+
+Again solving for $y(0)=y_0$ we obtain an expression for $C$
+and get:
+
+$$
+y(t) = y_0 e^{-\beta t} + \frac{v}{\beta - \delta} \frac{I_0}{K} \left( e^{-\delta t} - e^{-\beta t}\right)\,.
+$$
+
+Next, we attempt to integrate the more complex activation function:
+
+$$
+\begin{aligned}
+\alpha(t) =& \ell + v \frac{(I_0 e^{-\delta t})^n}{(I_0 e^{-\delta t})^n + K^n}\\
+f(t) =& \int \alpha(t) e^{\beta t} \text{d}t + C
+\end{aligned}
+$$
+
+At [Wolfram Alpha](https://www.wolframalpha.com/) (replacing $I_0$ by `A` and $t$ by `x`)\newline
+`integrate ( (l + v*A^n*e^(-d*n*x)/(A^n*e^(-d*n*x) + K^n))*e^(b*x))`
+yields\newline
+`(e^(b x) (v 2F1(1, b/(d n), b/(d n) + 1, -A^(-n) e^(d n x) K^n) + l))/b + constant`,\newline
+where $_2\text{F}_1$ is the hypergeometric function, ie.:
+
+
+\begin{equation}
+\label{eq:wasln}
+f(t) = \frac{e^{\beta t}}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) + C\,.
+\end{equation}
+
+Substituting eq. \ref{eq:wasln} in eq. \ref{eq:voc} and solving for $y(0)=y_0$, we get:
+
+
+$$
+y(t) = y_0 e^{-\beta t} + \frac{1}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) (1- e^{-\beta t})\,.
+$$
+
+The hypergeometric function $_2\text{F}_1$ is rather unusual but often turns up in
+solutions of differential equations. See eg. Daalhuis' presentation at NIST
+(https://dlmf.nist.gov/15.17) for more information.
+It can be solved using the `R`  interface to its implementation
+in the "GNU Scientific Library", specifically the function `R::hyperg_2F1`. 
+However, (fast) convergence is only guaranteed for $|z|<1$, and may fail for certain
+combinations of the other parameters. For our model $z<0$ is always true, but
+$|z|$ can become very large, eg. it is exponential with $t$, and inversely
+proportional to $I_0$. We use the transformation provided by @Forrey1997
+for $z< -1$:
+
+```{r, eval=FALSE}
+library(gsl)
+Gauss2F1_forrey <- function(a,b,c,z){
+  if( abs(z) < 1 ) {
+    y <- hyperg_2F1(a, b, c, z)
+  } else {
+    w <- 1/(1-z)
+    A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*hyperg_2F1(a,c-b,a-b+1,w)
+    B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*hyperg_2F1(b,c-a,b-a+1,w)
+    y <- A+B
+  }
+  y
+}
+```
+
+An alternative approach was suggested at `stackexchange`
+by Stephane Laurent which seems more efficient. However, no official reference
+for this solution was provided. 
+
+```{r, eval=FALSE}
+## https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
+## quote: "Based on my experience I also recommend to only evaluate the Gauss 
+## hypergeometric function for a value of the variable lying in [0,1], and 
+## use a transformation formula for values in ]-Inf,0]."
+## Alternatively, use a more precise implementation at
+## http://stla.overblog.com/the-binary-splitting-with-the-r-gmp-package-application-to-gauss-hypergeometric-function
+library(gsl)
+Gauss2F1_laurent <- function(a,b,c,z){
+  if(z>=0 & z<1){
+    hyperg_2F1(a,b,c,z)
+  }else{
+    hyperg_2F1(c-a,b,c,1-1/(1-z))/(1-z)^b
+  }
+}
+```
+
+# References
