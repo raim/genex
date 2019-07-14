@@ -15,20 +15,26 @@ Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
   
   ## loop through x to check values
   ## TODO: use apply?
+  ## TODO: use different x[i] selection for laurent
   y <- rep(list(NA),length(x))
   for ( i in 1:length(x) )
-    if( abs(x[i]) < 1 ) {
-      y[[i]] <- gsl::hyperg_2F1(a,b,c,x[i])
-    } else {
-        if ( method[1]=="forrey" ) {
-            w <- 1/(1-x[i])
-            A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))
-            A <- A*gsl::hyperg_2F1(a,c-b,a-b+1,w)
-            B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))
-            B <- B*gsl::hyperg_2F1(b,c-a,b-a+1,w)
-            y[[i]] <- A+B
-        } else if (method[1]=="laurent" ) # Stephane Laurent's version
-            y[[i]] <- gsl::hyperg_2F1(c-a,b,c,1-1/(1-x[i]))/(1-x[i])^b 
+    if ( method[1]=="forrey" ) {
+      if( abs(x[i]) < 1 ) {
+        y[[i]] <- gsl::hyperg_2F1(a,b,c,x[i])
+      } else {
+        w <- 1/(1-x[i])
+        A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))
+        A <- A*gsl::hyperg_2F1(a,c-b,a-b+1,w)
+        B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))
+        B <- B*gsl::hyperg_2F1(b,c-a,b-a+1,w)
+        y[[i]] <- A+B
+      } 
+    } else if (method[1]=="laurent" ) { # Stephane Laurent's version
+      if(x[i]>=0 & x[i]<1){
+        y[[i]] <- hyperg_2F1(a,b,c,x[i])
+      }else{
+        y[[i]] <- gsl::hyperg_2F1(c-a,b,c,1-1/(1-x[i]))/(1-x[i])^b 
+      }
     }
   unlist(y)
 }
