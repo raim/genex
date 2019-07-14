@@ -21,7 +21,7 @@ delta <- log(2)/tI # h-1, degradation rate aTc
 
 ## NOTE: with current parameters, stability problems at
 ##  delta<.001 and delta>9 (see scan below)
-# delta <- 0.001
+#delta <- 0.001
 
 ## experimental conditions
 time <- 0:150
@@ -80,11 +80,18 @@ for ( tm in seq(0,72,5)) {
   lines(I0,yt1,col=1+as.numeric(tm>24))
 }
 
-## rhamnose step-down experiment - to fit degradation rate
-yt <- fexpr(time=time, I0=0, delta=log(2)/24, beta=.2, 
+## rhamnose step-down experiment -> to fit degradation rate
+yt <- fexpr(time=time, I0=0, delta=0, beta=.2, 
             y0=6000, n=n, K=K, l=l, v=v, method="laurent")
 plot(time, yt)
 plot(time, log(yt))
+
+## rhamnose increase to high levels over long time
+## -> requires a high degradation rate
+yt <- fexpr(time=time, I0=100, delta=0, beta=0.01, 
+            y0=0, n=1, K=10, l=100, v=500, method="laurent")
+plot(time, yt)
+
 
 ## use nlm to fit
 
