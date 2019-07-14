@@ -4,7 +4,7 @@ source("../R/genex.R")
 ## select between methods by Forrey (J Comp Phys 1997)
 ## or Stephane Laurent (stackexchange)
 ## NOTE: laurent is more stable for low delta!!
-method <- "forrey" # "laurent" #
+method <- "laurent" # "forrey" # 
 
 ### GENERAL EXPERIMENT PARAMETERS 
 
