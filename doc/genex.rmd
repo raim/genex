@@ -302,3 +302,11 @@ Gauss2F1_laurent <- function(a,b,c,z){
 ```
 
 # References
+<div id="refs"></div>
+
+# Appendix III: ANALYSIS
+
+```{r, eval=TRUE, echo=TRUE, warning=FALSE}
+source("../scripts/analyse.R")
+```
+

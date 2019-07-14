@@ -60,7 +60,7 @@ legend("bottomright",paste("at",ts,"h"),
        title=paste0("half-life: ",tI, ",h"),
        col=3:4,lty=1,pch=19,pt.cex=.5)
 
-time <- 0:100
+time <- 0:150
 plot(1, col=NA,  ylim=ylim,xlim=range(time),
      xlab="time, h", ylab="fluorescence/OD, au")
 for ( delta in seq(0,8,.05)/10 ) {
@@ -80,24 +80,54 @@ for ( tm in seq(0,72,5)) {
   lines(I0,yt1,col=1+as.numeric(tm>24))
 }
 
-## rhamnose step-down experiment -> to fit degradation rate
-yt <- fexpr(time=time, I0=0, delta=0, beta=.2, 
-            y0=6000, n=n, K=K, l=l, v=v, method="laurent")
-plot(time, yt)
-plot(time, log(yt))
-
 ## rhamnose increase to high levels over long time
-## -> requires a high degradation rate
-yt <- fexpr(time=time, I0=100, delta=0, beta=0.01, 
-            y0=0, n=1, K=10, l=100, v=500, method="laurent")
-plot(time, yt)
+
+## -> requires a low degradation rate
+par(mfcol=c(1,1))
+yt <- fexpr(time=time, I0=100, delta=0.001, beta=0.01, 
+            y0=0, n=1, K=100, l=10, v=600, method="laurent")
+plot(time, yt, xlim=c(0,2*time[length(time)]))
+legend("topleft",expression("slow increase implies low"~delta[P]~"..."),
+       box.col=NA, bg="#FFFFFF99")
+
+## rhamnose step-down experiment -> to fit degradation rate
+## -> should yield a high degradation rate?
+yd <- fexpr(time=time, I0=0, delta=0, beta=.2, 
+            y0=yt[length(yt)], n=n, K=K, l=l, v=v, method="laurent")
+#plot(time, yt)
+points(time+time[length(time)], yd,col=2)
+legend("right",expression("... but step-down implies high"~delta[P]),
+       bty="n", text.col=2)
+legend("topright","rhamnose time-series")
 
 
 ## use nlm to fit
 
 ## generate data with noise
+real.delta <- 0.1 # delta of simulated data
+start.delta <- 0.5 # start value for fit
+
 yt <- fexpr(time=time, I0=1000, delta=0.1, beta=beta, 
             y0=y0, n=n, K=K, l=l, v=v, method="laurent")
-yn <- yt + rnorm(length(time),mean=0, sd=50)
-plot(time,yt,type="l")
-points(time,yn)
+yn <- yt + rnorm(length(time),mean=0, sd=30)
+
+plot(time,yn,type="p")
+lines(time,yt, col="darkgray", lwd=5, lty=2)
+legend("topright","add noise to implement a fitting routine")
+
+## NLS FIT OF DATA, FOR DELTA ONLY
+f <- function(time, delta) 
+  fexpr(time=time, delta=delta, I0=1000, beta=beta, 
+        y0=y0, n=n, K=K, l=l, v=v, method="laurent")
+dat <- data.frame(time=time, yn=yn)
+start <- list(delta=0.5) # start value for estimation
+nlfit <- nls(yn ~ f(time, delta),data=dat,start=start) 
+fitted.delta <- coefficients(nlfit)
+
+lines(time, predict(nlfit), col=2, lwd=2)
+legend("right",c("data with noise",
+                 paste(c("real","start","fitted"),
+                     c(real.delta, start.delta,fitted.delta))),
+       pch=c(1,NA,NA,NA), lty=c(NA, 2, NA, 1), lwd=c(NA,5,NA,2),
+       col=c("black","darkgray", NA, "red"))
+
