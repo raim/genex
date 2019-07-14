@@ -87,25 +87,31 @@ for ( tm in seq(0,72,5)) {
 }
 
 ## rhamnose increase to high levels over long time
-
-## -> requires a low degradation rate
-par(mfcol=c(1,1))
-yt <- fexpr(time=time, I0=100, delta=0, beta=0.01, 
+beta.low <- 0.01
+beta.high <- 0.1
+## -> requires a low protein degradation rate
+## NOTE: small delta here works bettery with laurent
+yt <- fexpr(time=time, I0=100, delta=0.001, beta=beta.low, 
             y0=0, n=1, K=100, l=10, v=600, method=method)
-plot(time, yt, xlim=c(0,2*time[length(time)]))
-legend("topleft",expression("slow increase implies low"~delta[P]~"..."),
-       box.col=NA, bg="#FFFFFF99")
-
 ## rhamnose step-down experiment -> to fit degradation rate
 ## -> should yield a high degradation rate?
-yd <- fexpr(time=time, I0=0, delta=0, beta=.2, 
+## use last yt from build-up as y0
+yd <- fexpr(time=time, I0=0, delta=0, beta=beta.high, 
             y0=yt[length(yt)], n=n, K=K, l=l, v=v, method=method)
-#plot(time, yt)
-points(time+time[length(time)], yd,col=2)
+
+## plot
+par(mfcol=c(1,1))
+plot(time, yt, xlim=c(0,2*time[length(time)]),type="l")
+legend("topleft",expression("slow increase implies low"~delta[P]~"..."),
+       box.col=NA, bg="#FFFFFF99")
+lines(time+time[length(time)], yd,col=2)
 legend("right",expression("... but step-down implies high"~delta[P]),
        bty="n", text.col=2)
 legend("topright","rhamnose time-series")
-
+text(time[length(time)],yt[length(yt)]*.75, 
+     bquote(delta[P]*"="*.(beta.low-mu)),pos=2)
+text(time[length(time)],yt[length(yt)]*.75, 
+     bquote(delta[P]*"="*.(beta.high-mu)),pos=4,col=2)
 
 ## use nlm to fit
 
@@ -133,6 +139,7 @@ nlfit <- nls(yn ~ f(time, delta),data=dat,start=start)
 fitted.delta <- coefficients(nlfit)
 
 ## plot results
+par(mfcol=c(1,1))
 plot(ltime,yn,type="p",cex=1.5,pch=4,ylim=c(0,max(yn,yt)))
 lines(time,yt, col="darkgray", lwd=5, lty=2)
 lines(time, predict(nlfit,newdata=list(time=time)), col=2, lwd=2)
