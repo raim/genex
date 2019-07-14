@@ -87,16 +87,20 @@ for ( tm in seq(0,72,5)) {
 }
 
 ## rhamnose increase to high levels over long time
-beta.low <- 0.01
-beta.high <- 0.1
+time <- 0:70
+delta.rha <- 0.005
+deltaP.low <- 0.01
+deltaP.high <- 0.05
+beta.low <- deltaP.low + mu
+beta.high <- deltaP.high + mu
 ## -> requires a low protein degradation rate
 ## NOTE: small delta here works bettery with laurent
-yt <- fexpr(time=time, I0=100, delta=0.001, beta=beta.low, 
+yt <- fexpr(time=time, I0=100, delta=delta.rha, beta=beta.low, 
             y0=0, n=1, K=100, l=10, v=600, method=method)
 ## rhamnose step-down experiment -> to fit degradation rate
 ## -> should yield a high degradation rate?
 ## use last yt from build-up as y0
-yd <- fexpr(time=time, I0=0, delta=0, beta=beta.high, 
+yd <- fexpr(time=time, I0=0, delta=delta.rha, beta=beta.high, 
             y0=yt[length(yt)], n=n, K=K, l=l, v=v, method=method)
 
 ## plot
