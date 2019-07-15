@@ -33,39 +33,17 @@ delta <- log(2)/tI # h-1, degradation rate aTc
 time <- 0:150
 I0 <- c(0,10^seq(-1,4,.1)) # initial inducer concentration
 
+## activation term as a function of time
+par(mai=c(.5,.5,.1,.1), mgp=c(1.3,.4,0),tcl=-.25)
+plot(I0, Gauss2F1(1, beta/(n*delta), beta/(n*delta) +1, -exp(n*delta*0)*K^n/I0^n),
+     type="l", xlab="initial inducer concentration", ylab="activation term")
+for ( tm in seq(0,150,10) )
+    lines(I0, Gauss2F1(1, beta/(n*delta), beta/(n*delta) +1, -exp(n*delta*tm)*K^n/I0^n))
+arrows(x0=2000,x1=5000,y0=0.8,y1=0.4)
+text(3500,0.6, "increasing time",pos=4)
 
-par(mfcol=c(2,1), mai=c(.5,.5,.1,.1), mgp=c(1.3,.4,0),tcl=-.25)
-i0 <- c(10000, 100)
-ts <- c(24,48)
-yt1 <- fexpr(time=time, I0=i0[1], delta=delta, beta=beta, 
-             y0=y0, n=n, K=K, l=l, v=v)
-yt2 <- fexpr(time=time, I0=i0[2], delta=delta, beta=beta, 
-             y0=y0, n=n, K=K, l=l, v=v)
-yi1 <- fexpr(time=ts[2], I0=I0, delta=delta, beta=beta, 
-             y0=y0, n=n, K=K, l=l, v=v)
-yi2 <- fexpr(time=ts[1], I0=I0, delta=delta, beta=beta, 
-             y0=y0, n=n, K=K, l=l, v=v)
-
-ys <- c(yt1,yt2,yi1,yi2)
-ys <- ys[is.finite(ys)]
-ylim <- c(0, max(ys,na.rm=TRUE))
-
-plot(time, yt1, type="b", pch=19, cex=.5, ylim=ylim,
-     ylab="fluorescence/OD, a.u.", xlab="time, h")
-lines(time, yt2, col=2, type="b", pch=19, cex=.5)
-legend("topright",legend=c(as.expression(bquote(I[0] ~":"~.(i0[1]))),
-                           bquote(I[0]~":"~.(i0[2]))),
-       title=paste0("half-life: ",tI, ",h"), col=1:2,lty=1,pch=19,pt.cex=.5)
-abline(v=ts, col=3:4, lty=1)
-plot(I0, yi1, type="b", col=4, lty=1, pch=19, cex=.5,
-     log="x",ylim=ylim,xlim=c(1,max(I0)),
-     xlab="inducer concentration", ylab="fluorescence/OD, au")
-lines(I0, yi2, type="b", col=3, lty=1, pch=19, cex=.5)
-abline(v=i0,col=1:2)
-legend("bottomright",paste("at",ts,"h"),
-       title=paste0("half-life: ",tI, ",h"),
-       col=3:4,lty=1,pch=19,pt.cex=.5)
-
+## increasing delta vs. time
+ylim <- c(0, 425)
 time <- 0:150
 plot(1, col=NA,  ylim=ylim,xlim=range(time),
      xlab="time, h", ylab="fluorescence/OD, au")
@@ -76,7 +54,10 @@ for ( delta in seq(0,8,.05)/10 ) {
                y0=y0, n=n, K=K, l=l, v=v, method=method)
   lines(time,yt1)
 }
+arrows(x0=120,x1=80,y0=350,y1=250)
+text(x=100,y=300,expression("increasing"~delta),pos=4)
 
+## increasing inducer at different sampling times
 I0 <- seq(0,1000,10) #c(0,10^seq(-2,4,.1))
 plot(1, col=NA, ylim=ylim, xlim=c(0.1,max(I0)),
      xlab="inducer concentration", ylab="fluorescence/OD, au")     
@@ -85,6 +66,7 @@ for ( tm in seq(0,72,5)) {
                y0=y0, n=n, K=K, l=l, v=v, method=method)
   lines(I0,yt1,col=1+as.numeric(tm>24))
 }
+
 
 ## rhamnose increase to high levels over long time
 time <- 0:70
@@ -121,7 +103,7 @@ text(time[length(time)],yt[length(yt)]*.75,
 
 ## generate data with noise
 real.delta <- 0.1 # delta of simulated data
-start.delta <- 0 # start value for fit
+start.delta <- 0.5 # start value for fit
 ## real data at high res
 time <- seq(0,70,1)
 yt <- fexpr(time=time, I0=1000, delta=real.delta, beta=beta, 
@@ -134,13 +116,20 @@ yn <- fexpr(time=ltime, I0=1000, delta=real.delta, beta=beta,
 yn <- c(yn + rnorm(length(ltime),mean=0, sd=30))
 
 ## NLS FIT OF DATA, FOR DELTA ONLY
-f <- function(time, delta) 
+
+## evaluation function for fit
+f <- function(time, delta) #, beta) 
   fexpr(time=time, delta=delta, I0=1000, beta=beta, 
         y0=y0, n=n, K=K, l=l, v=v, method=method)
+
+## input for fit
 dat <- data.frame(time=ltime, yn=yn)
-start <- list(delta=0.5) # start value for estimation
-nlfit <- nls(yn ~ f(time, delta),data=dat,start=start) 
-fitted.delta <- coefficients(nlfit)
+start <- list(delta=start.delta) #, beta=beta) # start value for estimation
+
+## fit
+nlfit <- nls(yn ~ f(time, delta), data=dat, start=start) 
+
+fitted.delta <- coefficients(nlfit)[1]
 
 ## plot results
 par(mfcol=c(1,1))

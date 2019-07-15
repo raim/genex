@@ -8,7 +8,7 @@ Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
   
   ## NOTE: for |z|>1 we use the transformation recommended in
   ## R.C. Forrey: Computing the Hypergeometric Function
-  ## JOURNAL OF COMPUTATIONAL PHYSICS137,79–100 (1997)
+  ## JOURNAL OF COMPUTATIONAL PHYSICS 137,79–100 (1997)
   ## Stephane Laurent's version from stackexchange seems both more
   ## efficient and also much more stable for some small delta
   ## https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
