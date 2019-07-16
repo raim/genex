@@ -103,7 +103,7 @@ text(time[length(time)],yt[length(yt)]*.75,
 
 ## generate data with noise
 real.delta <- 0.1 # delta of simulated data
-start.delta <- 0.005 # start value for fit
+start.delta <- 0.05 # start value for fit
 ## real data at high res
 time <- seq(0,70,1)
 yt <- fexpr(time=time, I0=1000, delta=real.delta, beta=beta, 
@@ -118,7 +118,7 @@ yn <- c(yn + rnorm(length(ltime),mean=0, sd=30))
 ## NLS FIT OF DATA, FOR DELTA ONLY
 
 ## evaluation function for fit
-f <- function(time, delta) {  #, beta)
+f <- function(time, delta, l, v, K) {  
     #if ( delta < .005 ) delta <- 0
     y <- fexpr(time=time, delta=delta, I0=1000, beta=beta, 
                y0=y0, n=n, K=K, l=l, v=v, method=method)
@@ -128,10 +128,10 @@ f <- function(time, delta) {  #, beta)
 
 ## input for fit
 dat <- data.frame(time=ltime, yn=yn)
-start <- list(delta=start.delta) #, beta=beta) # start value for estimation
+start <- list(delta=start.delta, l=l, v=v, K=K) #, beta=beta) # start value for estimation
 
 ## fit
-nlfit <- nls(yn ~ f(time, delta), data=dat, start=start) 
+nlfit <- nls(yn ~ f(time, delta, l, v, K), data=dat, start=start) 
 
 fitted.delta <- coefficients(nlfit)[1]
 
