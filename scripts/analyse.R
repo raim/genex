@@ -118,7 +118,7 @@ yn <- c(yn + rnorm(length(ltime),mean=0, sd=30))
 ## NLS FIT OF DATA, FOR DELTA ONLY
 
 ## evaluation function for fit
-f <- function(time, delta, l, v, K) {  
+f <- function(time, delta) { #, l, v, K) {  
     #if ( delta < .005 ) delta <- 0
     y <- fexpr(time=time, delta=delta, I0=1000, beta=beta, 
                y0=y0, n=n, K=K, l=l, v=v, method=method)
@@ -128,10 +128,10 @@ f <- function(time, delta, l, v, K) {
 
 ## input for fit
 dat <- data.frame(time=ltime, yn=yn)
-start <- list(delta=start.delta, l=l, v=v, K=K) #, beta=beta) # start value for estimation
+start <- list(delta=start.delta) #, l=l, v=v, K=K) #, beta=beta) # start value for estimation
 
 ## fit
-nlfit <- nls(yn ~ f(time, delta, l, v, K), data=dat, start=start) 
+nlfit <- nls(yn ~ f(time, delta), data=dat, start=start) 
 
 fitted.delta <- coefficients(nlfit)[1]
 
