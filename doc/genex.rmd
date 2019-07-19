@@ -271,7 +271,7 @@ The hypergeometric function $_2\text{F}_1$ is rather unusual but often turns up 
 solutions of differential equations. See eg. Daalhuis' presentation at NIST
 (https://dlmf.nist.gov/15.17) for more information.
 It can be solved using the `R`  interface to its implementation
-in the "GNU Scientific Library", specifically the function `R::hyperg_2F1`. 
+in the "GNU Scientific Library", specifically the function `gsl::hyperg_2F1`. 
 However, (fast) convergence is only guaranteed for $|z|<1$, and may fail for certain
 combinations of the other parameters. For our model $z<0$ is always true, but
 $|z|$ can become very large, eg. it is exponential with $t$, and inversely
