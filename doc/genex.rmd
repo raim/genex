@@ -25,13 +25,23 @@ I(t) &= I_0 e^{-\delta t}\\
 \end{aligned}
 \end{equation}
 
-with culture growth rate $\mu$ and AVS-tagged protein degradation rate $\delta_P$, 
-basal ("leaky") transcription rate $\ell$, maximal induced transcription rate
-$v$, half-maximal inducer concentration $K$ and number of inducer binding
-sites $n$, and  initial inducer concentration $I_0$ and inducer degradation 
-rate $\delta$.
+with culture growth rate $\mu$ and AVS-tagged protein degradation rate 
+$\delta_P$, basal ("leaky") transcription rate $\ell$, maximal induced
+transcription rate $v$, half-maximal inducer concentration $K$ and a
+Hill-factor $n$, and  initial inducer concentration $I_0$ and inducer
+degradation  rate $\delta$.
 
-This inhomogenous first-order differential equation can be solved easily for constant inducer, $\delta=0$, (Appendix I):
+Note that these equations are purely empirical, since the model
+simplifies multiple steps of complex formation (inducer and transcription
+factor, transcription factor on promoter) and subsumes both transcription
+and translation. Nevertheless, the parameters may roughly reflect 
+dominant biochemical parameters of the real system, eg. $K$ could be
+representative of the actual dissociation constant between inducer and
+transcription factor $K=\frac{[I][P]}{P}$, or $n>1$ may reflect multiple
+binding sites of the complex on the promoter.
+
+This inhomogenous first-order differential equation can be solved easily 
+for constant inducer, $\delta=0$, (Appendix I):
 
 \begin{equation}
 \label{eq:consti}
@@ -241,11 +251,14 @@ yields\newline
 `(e^(b x) (v 2F1(1, b/(d n), b/(d n) + 1, -A^(-n) e^(d n x) K^n) + l))/b + constant`,\newline
 where $_2\text{F}_1$ is the hypergeometric function, ie.:
 
-
 \begin{equation}
 \label{eq:wasln}
 f(t) = \frac{e^{\beta t}}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) + C\,.
 \end{equation}
+
+We could not identify the applied integration rule in literature (TODO),
+but minimally: $\int \frac{e^{\beta t}}{1+e^t} \text{d}t= 
+\frac{e^{\beta t}}{b} _2\text{F}_1(1,b;b+1;-e^x)$).
 
 Substituting eq. \ref{eq:wasln} in eq. \ref{eq:voc} and solving for $y(0)=y_0$, we get:
 
