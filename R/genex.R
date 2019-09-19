@@ -72,8 +72,8 @@ fexpr <- function(delta, time=seq(1,10,.1), I0=10, y0=50,
   ## REMOVE y<0 - not physical, numerical artefact
   if ( any(!is.na(y)) )
     if ( any(y<0, na.rm=TRUE) ) {
-      warning(sum(y<0,na.rm=TRUE), " y<0 replaced by NA")
-      y[which(y<0)] <- NA
+      warning(sum(y<0,na.rm=TRUE), " y<0")
+      #y[which(y<0)] <- NA
     }
   y
 }
