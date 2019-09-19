@@ -31,7 +31,7 @@ Gauss2F1 <- function(a,b,c,x, method=c("forrey","laurent") ){
       } 
     } else if (method[1]=="laurent" ) { # Stephane Laurent's version
       if(x[i]>=0 & x[i]<1){
-        y[[i]] <- hyperg_2F1(a,b,c,x[i])
+        y[[i]] <- gsl::hyperg_2F1(a,b,c,x[i])
       }else{
         y[[i]] <- gsl::hyperg_2F1(c-a,b,c,1-1/(1-x[i]))/(1-x[i])^b 
       }
