@@ -1,6 +1,6 @@
 ---
 title: "genex"
-author: "Anna German & Rainer Machne"
+author: "Rainer Machne"
 date: "July 12, 2019"
 bibliography: genex.bib
 output: 
