@@ -21,7 +21,7 @@ rmarkdown::render("doc/genex.rmd", "pdf_document")
 
 ## Usage
 
-The file `(R/genex.R)` holds two functions.
+The file [R/genex.R](R/genex.R) holds two functions.
 
 * `Gauss2F1` implements the described wrapper for the `hyperg_2F1`
 function, avoiding convergence issues by a transformation @Forrey1997,
@@ -36,9 +36,9 @@ inducer half-life and cell growth.
 
 ## Examples
 
-* `scripts/analyse.R` exemplifies effects of parameters and is sourced
-for the documentation in `doc/genex.rmd`,
-* `scripts/vannilate_fit.R` exemplifies how to fit a real life
+* [scripts/analyse.R](scripts/analyse.R) exemplifies effects of parameters and is sourced
+for the documentation in [doc/genex.rmd](doc/genex.rmd),
+* [scripts/vannilate_fit.R](scripts/vannilate_fit.R) exemplifies how to fit a real life
 data set.
 
 
