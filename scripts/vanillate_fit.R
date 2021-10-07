@@ -1,4 +1,4 @@
-source("/home/raim/programs/genex/R/genex.R")
+source("/home/raim/work/genex/R/genex.R")
 
 ### MODEL EVALUATION PARAMETER
 ## select between methods by Forrey (J Comp Phys 1997)
@@ -34,7 +34,7 @@ v <- 700 # maximal induced transcription
 #I0 <- c(0,10^seq(-1,4,.1)) # initial inducer concentration
 #I0 <- 500
 ## USE NLS TO FIT DATA
-path <- "~/programs/genex/data"
+path <- "~/work/genex/data"
 timecourse= read.csv(file.path(path,'Time series',
                                '190610 time course vanillate.csv'),
                      header=TRUE, sep=";",dec=",")
