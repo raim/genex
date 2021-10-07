@@ -38,7 +38,7 @@ inducer half-life and cell growth.
 
 * [scripts/analyse.R](scripts/analyse.R) exemplifies effects of parameters and is sourced
 for the documentation in [doc/genex.rmd](doc/genex.rmd),
-* [scripts/vannilate_fit.R](scripts/vannilate_fit.R) exemplifies how to fit a real life
+* [scripts/vanillate_fit.R](scripts/vanillate_fit.R) exemplifies how to fit a real life
 data set.
 
 
