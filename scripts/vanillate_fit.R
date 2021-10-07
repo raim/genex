@@ -1,4 +1,15 @@
-source("/home/raim/work/genex/R/genex.R")
+
+## ADJUST THESE PATHS to your git location
+
+## relative path from <gitrepo>/scripts
+source("../R/genex.R")
+path <- "../data"
+
+## input data
+vanilla.time <- file.path(path,'Time series',
+                          '190610 time course vanillate.csv')
+vanilla.dose <- file.path(path,'Dose response',
+                          '190513 vanillate dose response EVC corrected_header.csv')
 
 ### MODEL EVALUATION PARAMETER
 ## select between methods by Forrey (J Comp Phys 1997)
@@ -34,15 +45,12 @@ v <- 700 # maximal induced transcription
 #I0 <- c(0,10^seq(-1,4,.1)) # initial inducer concentration
 #I0 <- 500
 ## USE NLS TO FIT DATA
-path <- "~/work/genex/data"
-timecourse= read.csv(file.path(path,'Time series',
-                               '190610 time course vanillate.csv'),
+timecourse= read.csv(vanilla.time,
                      header=TRUE, sep=";",dec=",")
 timecourse[,2:10]
 timecourse[1,2:ncol(timecourse)] <- 0
 
-van_dose= read.csv(file.path(path,'Dose response',
-                             '190513 vanillate dose response EVC corrected_header.csv'),
+van_dose= read.csv(vanilla.dose,
                    header=TRUE,dec=',',sep=';')
 
 van_t <- data.frame(time=rep(timecourse[,1],9), yn=unlist(timecourse[,2:10]))
