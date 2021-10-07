@@ -1,6 +1,6 @@
 ---
 title: "SI File 3: Modelling Gene Expression with Inducer Half-Live"
-author: "Rainer Machne"
+author: "Rainer Machn&eacute;"
 date: "Oct 07, 2021"
 bibliography: genex.bib
 output: 
@@ -189,7 +189,6 @@ time-series experiments,
 
 
 \newpage
-# APPENDIX
 
 ## Appendix I: Induced Transcription with Constant Inducer
 
@@ -297,15 +296,14 @@ in the "GNU Scientific Library", specifically the function `gsl::hyperg_2F1`.
 However, (fast) convergence is only guaranteed for $|z|<1$, and may fail for certain
 combinations of the other parameters. For our model $z<0$ is always true, but
 $|z|$ can become very large, eg. it is exponential with $t$, and inversely
-proportional to $I_0$. We use the transformation provided by @Forrey1997
-for $z< -1$:
+proportional to $I_0$. We use the transformation provided by @Forrey1997:
 
 ```{r, eval=FALSE}
 library(gsl)
 Gauss2F1_forrey <- function(a,b,c,z){
-  if( abs(z) < 1 ) {
+  if( abs(z) < 1 ) 
     y <- hyperg_2F1(a, b, c, z)
-  } else {
+  else {
     w <- 1/(1-z)
     A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*hyperg_2F1(a,c-b,a-b+1,w)
     B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*hyperg_2F1(b,c-a,b-a+1,w)
@@ -315,24 +313,16 @@ Gauss2F1_forrey <- function(a,b,c,z){
 }
 ```
 
-An alternative approach was suggested at `stackexchange`
-by Stephane Laurent which seems more efficient. However, no official reference
-for this solution was provided. 
+An more efficient approach was suggested at `stackexchange` by
+St&eacute;phane Laurent:
 
 ```{r, eval=FALSE}
 ## https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
-## quote: "Based on my experience I also recommend to only evaluate the Gauss 
-## hypergeometric function for a value of the variable lying in [0,1], and 
-## use a transformation formula for values in ]-Inf,0]."
-## Alternatively, use a more precise implementation at
-## http://stla.overblog.com/the-binary-splitting-with-the-r-gmp-package-application-to-gauss-hypergeometric-function
-library(gsl)
 Gauss2F1_laurent <- function(a,b,c,z){
-  if(z>=0 & z<1){
+  if(z>=0 & z<1)
     hyperg_2F1(a,b,c,z)
-  }else{
+  else
     hyperg_2F1(c-a,b,c,1-1/(1-z))/(1-z)^b
-  }
 }
 ```
 
