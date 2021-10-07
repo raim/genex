@@ -10,14 +10,15 @@ This git holds an implementation of the model for induced gene
 expression as described in the Supporting Information `SI File 3` of
 @Behle2020 (https://doi.org/10.1021/acssynbio.9b00505).
 
-See (doc/genex.rmd) for details on the mathematical model. 
-To compile in R this use:
+See (doc/genex.rmd) for details on the mathematical model, and how to
+use the model to fit protein expression data measured in in growing
+cells (eg. GFP in *E. coli* in a "platereader").  To compile in R use:
 
 ``` R
 rmarkdown::render("doc/genex.rmd", "pdf_document")
 ```
 
-## Functions
+## Usage
 
 The file `(R/genex.R)` holds two functions.
 
