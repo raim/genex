@@ -1,5 +1,5 @@
 ---
-title: "SI File 3: Modelling Gene Expression with Inducer Half-Live"
+title: "SI File 3: Modelling Gene Expression with Unstable Inducers"
 author: "Rainer Machn&eacute;"
 date: "Oct 07, 2021"
 bibliography: genex.bib
@@ -79,13 +79,14 @@ observed inducer half-lives.
 
 The model was implemented in R, including a wrapper for required data
 transformations for the $_2\text{F}_1$ function, which is available
-via the R package `gsl`. The R code is freely available at
-https://github.com/raim/genex. The following code shows how to use
+via the R package `gsl` (Appendix III). The R code is freely available
+at https://github.com/raim/genex. The following code shows how to use
 the implemented functions, using typical parameters for induced GFP
 expression in *Escherichia coli* measured over all growth phases in
 microtiter 96-well plate cultures, and assuming an inducer half life
-$\tau_{1/2}=\frac{\ln 2}{\delta}=$ 17.5 h, within the ranges
-of half-lives (10--40 h) measured for anhydro-tetracycline by @Politi2014.
+$\tau_{1/2}=\frac{\ln 2}{\delta}=$ 17.5 h, within the ranges of
+half-lives (10--40 h) measured for anhydro-tetracycline by
+@Politi2014.
 
 
 
@@ -96,21 +97,21 @@ source("../R/genex.R")
 time <- seq(0,200,5) # h
 
 ##	INITIAL INDUCER CONCENTRATIONS 
-i0 <- c(10000, 100) # for time series plot
-I0 <- c(0,10^seq(-1,4,.1)) # a.u., for dose-response plot
-ts <- c(24,48)      # sampling time points for dose-response
+i0 <- c(10000, 100) # uMol, for time series plot
+I0 <- c(0,10^seq(-1,4,.1)) # uMol, for dose-response plot
+ts <- c(24,48)      # h, sampling time points for dose-response
 
 ## growth and protein degradation rates
-mu <- 0.029 # h-1, 1 division per day - mu = log(2)/24
-dy <- 0.07  # h-1, protein degradation rate, ASV-tagged mVenus
-beta <- mu + dy
+mu <- 0.033 # h-1, growth rate, derived from OD curve
+dp <- 0.064  # h-1, protein degradation rate, ASV-tagged mVenus
+beta <- mu + dp # h-1
 
 ### INDUCER-SPECIFIC PARAMETERS
-y0 <- 50 # intial protein concentration
-n <- 2   # Hill factor, ~ number of binding sites 
-K <- 100 # half-maximal concentration 
-l <- 1   # uninduced "leaky" transcription
-v <- 100 # maximal induced transcription
+y0 <- 50 # intial protein concentration: fluorescence/OD, a.u.
+n <- 2   # Hill factor, ~ number of binding sites, unitless
+K <- 100 # half-maximal concentration, uMol
+l <- 1   # uninduced "leaky" transcription, a.u. * h-1
+v <- 100 # maximal induced transcription, a.u. * h-1
 
 ## INDUCER HALF-LIFE - constant inducer over time
 tI <- 17.5 # h, half-life aTc
@@ -174,21 +175,37 @@ inducer concentration the maximal signal is seen later, and higher at
 
 ## Parameter Fitting Strategy and Results
 
-We roughly followed the following strategy to fit the various data
+We applied the following strategy to fit the various data
 sets:
 
 1. Calculate growth rate $\mu$ for all experiments,
-2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose experiment
-after step-down to get ASV-tagged protein degradation rate $\delta_P$,
-3. Estimate $y_0$ from 0 inducer for each promoter.
+2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose step-down experiment to get
+ $\delta_P$,
+3. Estimate $y_0$ and leaky rate $l$ from $I(0)=0$ (no inducer) data for each promoter,
 4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
 half-life $\delta$,
 5. Use obtained parameters as initial values and fit half-lives $\delta$ from
-time-series experiments,
-6. Iterate the above procedure until all shared parameters converge.
+time-series experiments.
+<!-- 6. Iterate the above procedure until all shared parameters converge. -->
+
+The data shown in the main manuscript were fitted using either the
+model for constant inducer (eq. \ref{eq:consti}) or the model with
+unstable inducer (eq. \ref{eq:vari}). The resulting fits are
+shown in the main manuscript figures. The following parameters were
+identified for fits with eq. \ref{eq:vari}:
 
 
-\newpage
+
+\begin{table}[ht]
+  \begin{tabular}{l|rr|rrr|rrr}
+    Promoter & $\mu$, h$^{-1}$ & $\delta_P$, h$^{-1}$ & $y_0$, a.u & $n$ & $l$, h$^{-1}$ &  $v$, h$^{-1}$ & $K$, $\mu$Mol & $\delta$, h$^{-1}$\\\hline
+    P$_\text{vanPP}$ &0.033 &0.064 & 0  &4&0   & 696.2& 96.3&0.031\\
+	P$_\text{L03}$   &0.033 &0.064 & 500&2&14.5&3562.2&101.9&0.068\\
+  \end{tabular}
+  \caption{Model Parameters}
+\end{table}
+
+
 
 ## Appendix I: Induced Transcription with Constant Inducer
 
