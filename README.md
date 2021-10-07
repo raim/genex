@@ -30,10 +30,13 @@ by Stephane Laurent.
 * `fexpr` implements the equation for induced protein expression, accounting
 for inducer half-life:
 
+``` math
 \begin{equation*}
 \label{eq:vari}
 y(t) = y_0 e^{-\beta t} + \frac{1- e^{-\beta t}}{\beta}\left(\ell + v\; _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)\right)\,.
 \end{equation*}
+```
+
 
 ## Examples
 
