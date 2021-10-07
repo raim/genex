@@ -1,5 +1,5 @@
 ---
-title: "Induced Gene Expression with Inducer Half-Live"
+title: "SI File 3: Modelling Gene Expression with Inducer Half-Live"
 author: "Rainer Machne"
 date: "Oct 07, 2021"
 bibliography: genex.bib
@@ -29,86 +29,76 @@ transcription rate $v$, half-maximal inducer concentration $K$ and a
 Hill-factor $n$, and  initial inducer concentration $I_0$ and inducer
 degradation  rate $\delta$.
 
-Note that gene expression functions are purely empirical, aimed at fitting the
-data at hand. The model simplifies multiple steps of complex formation (inducer and
-transcription factor, transcription factor on promoter) and subsumes both
-transcription and translation. Nevertheless, the parameters may roughly reflect 
-dominant biochemical parameters of the real system, eg. $K$ could be
+Note, that the Michaels-Menten-type activation function $\alpha$ is
+empirical, aimed at fitting the data at hand. The model simplifies
+multiple steps of complex formation (inducer and transcription factor,
+transcription factor on promoter) and subsumes both transcription and
+translation. Nevertheless, the parameters may roughly reflect dominant
+biochemical parameters of the real system, eg. $K$ could be
 representative of the actual dissociation constant between inducer and
 transcription factor $K=\frac{I P}{P}$, or $n>1$ may reflect multiple
 binding sites of the complex on the promoter.
 
-This inhomogenous first-order differential equation can be solved easily 
-for constant inducer, $\delta=0$, (Appendix I):
+This inhomogenous first-order differential equation can be solved 
+for a constant inducer, $\delta=0$, (Appendix I):
 
 \begin{equation}
 \label{eq:consti}
 y(t) = y_0 e^{-\beta t} +\frac{1- e^{-\beta t}}{\beta} \left(\ell + v \frac{I^n}{I^n+K^n}\right)\,.
 \end{equation}
 
-An analytic solution for the general case, $\delta >0$, is somewhat harder. 
-The integration routine of the [Wolfram alpha
-web service](https://www.wolframalpha.com/input/) provides the solution
-which simply replaces the activation term with the hypergeometric function $_2\text{F}_1$:
+An analytic solution for the general case, $\delta >0$, is harder
+(Appendix II).  The integration routine of the
+[Wolfram alpha web service](https://www.wolframalpha.com/input/)
+provides the solution which simply replaces the activation term with
+the hypergeometric function $_2\text{F}_1$:
 
 \begin{equation}
 \label{eq:vari}
 y(t) = y_0 e^{-\beta t} + \frac{1- e^{-\beta t}}{\beta}\left(\ell + v\; _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)\right)\,.
 \end{equation}
 
-$_2\text{F}_1$ is implemented in the GNU Scientific Library (GSL), 
-but requires certain transformations of the variables [@Forrey1997] to ensure
-convergence (Appendix II). For our model $_2\text{F}_1$ is well defined only
-for $\delta>0$ and $I_0>0$ and we use eq.(\ref{eq:consti}) for $I_0=0$ or 
-$\delta=0$ (no or constant inducer) and eq.(\ref{eq:vari}) for $\delta>0$. 
+$_2\text{F}_1$ is implemented in the GNU Scientific Library (GSL), but
+requires certain transformations of the variables [@Forrey1997] to
+ensure convergence (Appendix III). For our model $_2\text{F}_1$ is well
+defined only for $\delta>0$ and $I_0>0$ and we use
+eq.(\ref{eq:consti}) for $I_0=0$ or $\delta=0$ (no or constant
+inducer) and eq.(\ref{eq:vari}) for $\delta>0$, to fit experimental
+data.
 
-We observed numerical stability problems for too small $\delta$, esp. when combined 
-with small $I_0$. A more stable implementation of $_2\text{F}_1$ 
-or the required transformations would be desirable. Alternatively,
-a scaling to relative time $t/\delta$ may avoid the problematic
-terms. However, the approach worked
-well for the observed inducer half-lives. 
-
-\newpage
-
-## Parameter Fitting Strategy
-
-1. Calculate growth rate $\mu$ for all experiments,
-2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose experiment
-after step-down to get ASV-tagged protein degradation rate $\delta_P$,
-3. Estimate $y_0$ from 0 inducer for each promoter.
-
-These parameters should now remain unchanged. Use the correct set 
-for each fit. Consider which parameters are shared between which 
-experiments, eg. all experiments are done with ASV-tagged 
-mVenus, so the protein degration rate $\delta_P$ should be the
-same for all experiments. Leaky transcription rate $l$ and
-initial concentration $y_0$ should be the
-same for all experiments using the same promoter, independent of
-induction strength.
-Manually estimate parameter ranges and start values for variable parameters 
-to (a) make physical/biological sense, and (b) roughly cover the range of 
-observed values.
-
-4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
-half-life $\delta$,
-5. Use obtained parameters as initial values and fit half-lives $\delta$ from
-time-series experiments,
-6. Iterate the above procedure until all shared parameters converge.
-
-Steps 4-6 could be implemented in an automated loop.
-
-## Example
+We observed numerical stability problems for too small $\delta$,
+esp. when combined with small $I_0$. A more stable implementation of
+$_2\text{F}_1$ or the required transformations would be
+desirable. Alternatively, a scaling to relative time $t/\delta$ may
+avoid the problematic terms. However, the approach worked well for the
+observed inducer half-lives.
 
 
-```{r functions, echo=FALSE, warning=FALSE}
+
+## Implementation & Example
+
+The model was implemented in R, including a wrapper for required data
+transformations for the $_2\text{F}_1$ function, which is available
+via the R package `gsl`. The R code is freely available at
+https://github.com/raim/genex. The following code shows how to use
+the implemented functions, using typical parameters for induced GFP
+expression in *Escherichia coli* measured over all growth phases in
+microtiter 96-well plate cultures, and assuming an inducer half life
+$\tau_{1/2}=\frac{\ln 2}{\delta}=$ 17.5 h, within the ranges
+of half-lives (10--40 h) measured for anhydro-tetracycline by @Politi2014.
+
+
+
+```{r functions, echo=TRUE, warning=FALSE}
 source("../R/genex.R")
 ### GENERAL EXPERIMENT PARAMETERS 
 ## experiment time
 time <- seq(0,200,5) # h
 
-## inducer concentrations 
-I0 <- c(0,10^seq(-1,4,.1)) # TODO: unit
+##	INITIAL INDUCER CONCENTRATIONS 
+i0 <- c(10000, 100) # for time series plot
+I0 <- c(0,10^seq(-1,4,.1)) # a.u., for dose-response plot
+ts <- c(24,48)      # sampling time points for dose-response
 
 ## growth and protein degradation rates
 mu <- 0.029 # h-1, 1 division per day - mu = log(2)/24
@@ -125,36 +115,37 @@ v <- 100 # maximal induced transcription
 ## INDUCER HALF-LIFE - constant inducer over time
 tI <- 17.5 # h, half-life aTc
 delta <- log(2)/tI # h-1, degradation rate aTc
-#delta <- 0 # for rhamnose?
-
-## NOTE: with current parameters, we already run into convergence problems at delta~0.001
-#delta <- 0.011
-
 ```
 
-```{r plot, echo=FALSE, warning=FALSE}
-par(mfcol=c(2,1), mai=c(.5,.5,.1,.1), mgp=c(1.3,.4,0),tcl=-.25)
-i0 <- c(10000, 100)
-ts <- c(24,48)
+```{r solve, echo=TRUE, warning=FALSE}
+## calculate time series and dose-response curves using the `fexpr`
+## function provided in R/genex.R
+
+## CALCULATE TIME SERIES
 yt1 <- fexpr(time=time, I0=i0[1], delta=delta, beta=beta, 
              y0=y0, n=n, K=K, l=l, v=v)
 yt2 <- fexpr(time=time, I0=i0[2], delta=delta, beta=beta, 
              y0=y0, n=n, K=K, l=l, v=v)
+## CALCULATE DOSE-RESPONSE CURVES			 
 yi1 <- fexpr(time=ts[2], I0=I0, delta=delta, beta=beta, 
              y0=y0, n=n, K=K, l=l, v=v)
 yi2 <- fexpr(time=ts[1], I0=I0, delta=delta, beta=beta, 
              y0=y0, n=n, K=K, l=l, v=v)
 
-ys <- c(yt1,yt2,yi1,yi2)
+```
+
+```{r plot, echo=FALSE, warning=FALSE}
+ys <- c(yt1,yt2,yi1,yi2) # get common ylim for plots
 ys <- ys[is.finite(ys)]
 ylim <- c(0, max(ys,na.rm=TRUE))
 
+par(mfcol=c(2,1), mai=c(.5,.5,.1,.1), mgp=c(1.3,.4,0),tcl=-.25)
 plot(time, yt1, type="b", pch=19, cex=.5, ylim=ylim,
      ylab="fluorescence/OD, a.u.", xlab="time, h")
 lines(time, yt2, col=2, type="b", pch=19, cex=.5)
 legend("topright",legend=c(as.expression(bquote(I[0] ~":"~.(i0[1]))),
                            bquote(I[0]~":"~.(i0[2]))),
-       title=paste0("half-life: ",tI, ",h"), col=1:2,lty=1,pch=19,pt.cex=.5)
+       title=paste0("half-life: ",tI, " h"), col=1:2,lty=1,pch=19,pt.cex=.5)
 abline(v=ts, col=3:4, lty=1)
 plot(I0, yi1, type="b", col=4, lty=1, pch=19, cex=.5,
      log="x",ylim=ylim,xlim=c(1,max(I0)),
@@ -162,9 +153,40 @@ plot(I0, yi1, type="b", col=4, lty=1, pch=19, cex=.5,
 lines(I0, yi2, type="b", col=3, lty=1, pch=19, cex=.5)
 abline(v=i0,col=1:2)
 legend("bottomright",paste("at",ts,"h"),
-       title=paste0("half-life: ",tI, ",h"),
-       col=3:4,lty=1,pch=19,pt.cex=.5)
+       title=paste0("half-life: ",tI, " h"),
+       col=3:4,lty=1,pch=19,pt.cex=.5, bg="white")
 ```
+
+We first calculate (eq. \ref{eq:vari}) protein concentration time
+courses for two different inducer concentrations (upper panel).  Next,
+we scan over inducer concentrations to generate dose-response curves,
+sampled at two different time points (lower panel).  In the upper
+panel, vertical lines (green and blue) indicate the sampling time
+points used for the two dose-response curves in the lower panel. In
+the lower panel, vertical lines (red and black) indicate the
+concentrations used for the two time series in the upper panel.
+
+**This shows how the measured dose response depends on the sampling
+time**.  At low inducer concentration the signal (protein
+concentration) is higher when sampled at 24 h than at 48 h. At higher
+inducer concentration the maximal signal is seen later, and higher at
+48 h than at 24 h.
+
+## Parameter Fitting Strategy and Results
+
+We roughly followed the following strategy to fit the various data
+sets:
+
+1. Calculate growth rate $\mu$ for all experiments,
+2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose experiment
+after step-down to get ASV-tagged protein degradation rate $\delta_P$,
+3. Estimate $y_0$ from 0 inducer for each promoter.
+4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
+half-life $\delta$,
+5. Use obtained parameters as initial values and fit half-lives $\delta$ from
+time-series experiments,
+6. Iterate the above procedure until all shared parameters converge.
+
 
 \newpage
 # APPENDIX
@@ -254,16 +276,18 @@ where $_2\text{F}_1$ is the hypergeometric function, ie.:
 f(t) = \frac{e^{\beta t}}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) + C\,.
 \end{equation}
 
-We could not identify the applied integration rule in literature (TODO),
-but minimally, for $\beta\ne 1$: $\int \frac{e^{\beta t}}{1+e^t} \text{d}t= 
-\frac{e^{\beta t}}{\beta}\, _2\text{F}_1(1,\beta;\beta+1;-e^t)$).
+We could not identify the applied integration rule in literature, but
+minimally, for $\beta\ne 1$: $\int \frac{e^{\beta t}}{1+e^t}
+\text{d}t= \frac{e^{\beta t}}{\beta}\,
+_2\text{F}_1(1,\beta;\beta+1;-e^t)$).
 
 Substituting eq. \ref{eq:wasln} in eq. \ref{eq:voc} and solving for $y(0)=y_0$, we get:
-
 
 $$
 y(t) = y_0 e^{-\beta t} + \frac{1}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) (1- e^{-\beta t})\,.
 $$
+
+## Appendix III: The Hypergeometric Function
 
 The hypergeometric function $_2\text{F}_1$ is rather unusual but often turns up in
 solutions of differential equations. See eg. Daalhuis' presentation at NIST
@@ -315,9 +339,4 @@ Gauss2F1_laurent <- function(a,b,c,z){
 # References
 <div id="refs"></div>
 
-# Appendix III: ANALYSIS
-
-```{r, eval=TRUE, echo=TRUE, warning=FALSE}
-source("../scripts/analyse.R")
-```
 
