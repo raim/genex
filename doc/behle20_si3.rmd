@@ -11,7 +11,10 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Assuming that the inducer half-life $t_{1/2}=\frac{\log 2}{\delta}$ is not affected by metabolism, and that the measured fluorescence per OD is linearly related to protein concentration, $f_\text{OD}\sim y(t)$, we can describe the measured data as:
+Assuming that the inducer half-life $\tau_{1/2}=\frac{\ln 2}{\delta}$
+is not affected by metabolism, and that the measured fluorescence per
+OD is linearly related to protein concentration, $f_\text{OD}\sim
+y(t)$, we can describe the measured data as:
 
 \begin{equation}
 \label{eq:de}
@@ -19,7 +22,7 @@ Assuming that the inducer half-life $t_{1/2}=\frac{\log 2}{\delta}$ is not affec
 \beta &= \mu + \delta_P\\
 I(t) &= I_0 e^{-\delta t}\\
 \alpha(t) &= \ell + v \frac{I^n}{I^n+K^n}\\
-\frac{\text{d}y}{\text{d} t} = y' &= \alpha - \beta y
+\frac{\text{d}y}{\text{d} t}  &= \alpha - \beta y
 \end{aligned}
 \end{equation}
 
@@ -35,9 +38,10 @@ multiple steps of complex formation (inducer and transcription factor,
 transcription factor on promoter) and subsumes both transcription and
 translation. Nevertheless, the parameters may roughly reflect dominant
 biochemical parameters of the real system, eg. $K$ could be
-representative of the actual dissociation constant between inducer and
-transcription factor $K=\frac{I P}{P}$, or $n>1$ may reflect multiple
-binding sites of the complex on the promoter.
+representative of the actual dissociation constant of the complex
+$y:I$ between an inducer and a transcription factor $K=\frac{I y}{y:I}$,
+or $n>1$ may reflect multiple binding sites of the complex on the
+promoter.
 
 This inhomogenous first-order differential equation can be solved 
 for a constant inducer, $\delta=0$, (Appendix I):
@@ -97,25 +101,25 @@ source("../R/genex.R")
 time <- seq(0,200,5) # h
 
 ##	INITIAL INDUCER CONCENTRATIONS 
-i0 <- c(10000, 100) # uMol, for time series plot
+i0 <- c(10000, 100)        # uMol, for time series plot
 I0 <- c(0,10^seq(-1,4,.1)) # uMol, for dose-response plot
-ts <- c(24,48)      # h, sampling time points for dose-response
+ts <- c(24,48)             # h, sampling time points for dose-response
 
 ## growth and protein degradation rates
-mu <- 0.033 # h-1, growth rate, derived from OD curve
-dp <- 0.064  # h-1, protein degradation rate, ASV-tagged mVenus
-beta <- mu + dp # h-1
+mu <- 0.033     # 1/h, culture growth rate, derived from OD curve
+dp <- 0.064     # 1/h, protein degradation rate, ASV-tagged mVenus
+beta <- mu + dp # 1/h, combined dilution term
 
 ### INDUCER-SPECIFIC PARAMETERS
 y0 <- 50 # intial protein concentration: fluorescence/OD, a.u.
 n <- 2   # Hill factor, ~ number of binding sites, unitless
 K <- 100 # half-maximal concentration, uMol
-l <- 1   # uninduced "leaky" transcription, a.u. * h-1
-v <- 100 # maximal induced transcription, a.u. * h-1
+l <- 1   # uninduced production by "leaky" transcription, a.u./h
+v <- 100 # maximal induced production, a.u./h
 
 ## INDUCER HALF-LIFE - constant inducer over time
-tI <- 17.5 # h, half-life aTc
-delta <- log(2)/tI # h-1, degradation rate aTc
+tI <- 17.5         # h, half-life aTc
+delta <- log(2)/tI # 1/h, degradation rate aTc
 ```
 
 ```{r solve, echo=TRUE, warning=FALSE}
@@ -181,7 +185,7 @@ sets:
 1. Calculate growth rate $\mu$ for all experiments,
 2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose step-down experiment to get
  $\delta_P$,
-3. Estimate $y_0$ and leaky rate $l$ from $I(0)=0$ (no inducer) data for each promoter,
+3. Estimate $y_0$ and leaky rate $\ell$ from $I(0)=0$ (no inducer) data for each promoter,
 4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
 half-life $\delta$,
 5. Use obtained parameters as initial values and fit half-lives $\delta$ from
@@ -198,7 +202,7 @@ identified for fits with eq. \ref{eq:vari}:
 
 \begin{table}[ht]
   \begin{tabular}{l|rr|rrr|rrr}
-    Promoter & $\mu$, h$^{-1}$ & $\delta_P$, h$^{-1}$ & $y_0$, a.u & $n$ & $l$, h$^{-1}$ &  $v$, h$^{-1}$ & $K$, $\mu$Mol & $\delta$, h$^{-1}$\\\hline
+    Promoter & $\mu$, h$^{-1}$ & $\delta_P$, h$^{-1}$ & $y_0$, a.u & $n$ & $\ell$, h$^{-1}$ &  $v$, h$^{-1}$ & $K$, $\mu$Mol & $\delta$, h$^{-1}$\\\hline
     P$_\text{vanPP}$ &0.033 &0.064 & 0  &4&0   & 696.2& 96.3&0.031\\
 	P$_\text{L03}$   &0.033 &0.064 & 500&2&14.5&3562.2&101.9&0.068\\
   \end{tabular}
@@ -209,7 +213,7 @@ identified for fits with eq. \ref{eq:vari}:
 
 ## Appendix I: Induced Transcription with Constant Inducer
 
-The "inhomogenous linear first order differential equation", 
+The first order differential inhomogenous linear equation, 
 $$
 y'(t) + \beta y(t) = \alpha\,,
 $$ 
