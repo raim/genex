@@ -1,9 +1,3 @@
----
-bibliography: doc/genex.bib
----
-
-<!-- pandoc README.md --filter pandoc-citeproc -o README.pdf -->
-
 # Induced Gene Expression with Inducer Degradation
 
 This git holds an implementation of the model for induced gene
@@ -23,15 +17,14 @@ rmarkdown::render("doc/genex.rmd", "pdf_document")
 
 The file [R/genex.R](R/genex.R) holds two functions.
 
-* `Gauss2F1` implements the described wrapper for the `hyperg_2F1`
-function, avoiding convergence issues by a transformation @Forrey1997,
+* `Gauss2F1` implements a wrapper for the `hyperg_2F1` function,
+avoiding convergence issues by a transformation desribed by @Forrey1997
 (https://doi.org/10.1006/jcph.1997.5794) or alternatively a solution
 suggested at
 https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
 by Stephane Laurent.
 * `fexpr` implements the equation for induced protein expression with
 inducer half-life and cell growth.
-
 
 
 ## Examples
