@@ -79,6 +79,176 @@ observed inducer half-lives.
 
 
 
+
+## Parameter Fitting Strategy and Results
+
+We applied the following strategy to fit the various data
+sets:
+
+1. Calculate growth rate $\mu$ for all experiments,
+2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose step-down experiment to get
+ $\delta_P$,
+3. Estimate $y_0$ and leaky rate $\ell$ from $I(0)=0$ (no inducer) data for each promoter,
+4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
+half-life $\delta$,
+5. Use obtained parameters as initial values and fit half-lives $\delta$ from
+time-series experiments.
+<!-- 6. Iterate the above procedure until all shared parameters converge. -->
+
+The data shown in the main manuscript were fitted using either the
+model for constant inducer (eq. \ref{eq:consti}) or the model with
+unstable inducer (eq. \ref{eq:vari}). The resulting fits are
+shown in the main manuscript figures. The following parameters were
+identified for fits with eq. \ref{eq:vari}:
+
+
+
+\begin{table}[ht]
+  \begin{tabular}{l|rr|rrr|rrr}
+    Promoter & $\mu$/h$^{-1}$ & $\delta_P$/h$^{-1}$ & $y_0$/a.u & $n$ & $\ell$/h$^{-1}$ &  $v$/h$^{-1}$ & $K$/$\mu$Mol & $\delta$/h$^{-1}$\\\hline
+    P$_\text{vanCC}$ &0.033 &0.064 & 0  &4&0   & 696.2& 96.3&0.031\\
+	P$_\text{L03}$   &0.033 &0.064 & 500&2&14.5&3562.2&101.9&0.068\\
+  \end{tabular}
+  \caption{Model Parameters}
+\end{table}
+
+
+
+## Appendix I: Induced Transcription with Constant Inducer
+
+The first order differential inhomogenous linear equation, 
+$$
+y'(t) + \beta y(t) = \alpha\,,
+$$ 
+can be solved by adding a particular solution $y_p$ of the inhomogenous
+equation and the general solution $y_h$ of the homogenous version of the equation 
+(with $\alpha=0$).
+
+The general solution is $y_h = C e^{-\beta t}$, and the particular solution
+is simply $y_p=\frac{\alpha}{\beta}$, and we get:
+
+$$
+y(t) = y_p+y_h = \frac{\alpha}{\beta} + C e^{-\beta t}\,.
+$$
+
+
+Assuming an initial condition $y(0)=y_0$ we further get $C=y_0-\frac{\alpha}{\beta}$, and
+
+$$
+y(t) = y_0 e^{-\beta t} + \frac{\alpha}{\beta} \left(1 - e^{-\beta t}\right)\,.
+$$
+
+## Appendix II: Induced Transcription with Inducer Half-Life
+
+Here the factor $\alpha$ itself is a function of time $t$,
+and can use the "Variation of the Constant" method, where the
+constant $C$ of the solution of the homogenous equation is replaced
+by a function $f(t)$, ie.
+
+\begin{equation}
+\label{eq:voc}
+y(t) = f(t)\,e^{-\beta t}
+\end{equation}
+
+Using this in the full equation, we get:
+
+$$
+f'(t) e^{-\beta t} + f(t) e^{-\beta t} (-\beta) + \beta f(t) e^{-\beta t} = \alpha(t)\,
+$$
+where two terms on the left-hand side cancel out, and we need to integrate to get $f(t)$:
+
+$$
+f(t) = \int \alpha(t) e^{\beta t} \text{d}t + C 
+$$
+
+Let's first make it simple, and assume a linear induction with $I\ll K$, with
+
+$$
+\alpha(t) \approx v \frac{I_0 e^{-\delta t}}{K}\,.
+$$
+This is comparatively easy to integrate and yields
+
+$$
+f(t) = \frac{v}{\beta - \delta} \frac{I_0}{K} e^{(\beta-\delta)t} + C\,.
+$$
+
+Again solving for $y(0)=y_0$ we obtain an expression for $C$
+and get:
+
+$$
+y(t) = y_0 e^{-\beta t} + \frac{v}{\beta - \delta} \frac{I_0}{K} \left( e^{-\delta t} - e^{-\beta t}\right)\,.
+$$
+
+Next, we attempt to integrate the more complex activation function:
+
+$$
+\begin{aligned}
+\alpha(t) =& \ell + v \frac{(I_0 e^{-\delta t})^n}{(I_0 e^{-\delta t})^n + K^n}\\
+f(t) =& \int \alpha(t) e^{\beta t} \text{d}t + C
+\end{aligned}
+$$
+
+At [Wolfram Alpha](https://www.wolframalpha.com/) (replacing $I_0$ by `A` and $t$ by `x`)\newline
+`integrate ( (l + v*A^n*e^(-d*n*x)/(A^n*e^(-d*n*x) + K^n))*e^(b*x))`
+yields\newline
+`(e^(b x) (v 2F1(1, b/(d n), b/(d n) + 1, -A^(-n) e^(d n x) K^n) + l))/b + constant`,\newline
+where $_2\text{F}_1$ is the hypergeometric function, ie.:
+
+\begin{equation}
+\label{eq:wasln}
+f(t) = \frac{e^{\beta t}}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) + C\,.
+\end{equation}
+
+We could not identify the applied integration rule in literature, but
+minimally, for $\beta\ne 1$: $\int \frac{e^{\beta t}}{1+e^t}
+\text{d}t= \frac{e^{\beta t}}{\beta}\,
+_2\text{F}_1(1,\beta;\beta+1;-e^t)$).
+Substituting eq. \ref{eq:wasln} in eq. \ref{eq:voc} and solving for $y(0)=y_0$, we get:
+
+$$
+y(t) = y_0 e^{-\beta t} + \frac{1}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) (1- e^{-\beta t})\,.
+$$
+
+## Appendix III: The Hypergeometric Function
+
+The hypergeometric function $_2\text{F}_1$ is rather unusual but often turns up in
+solutions of differential equations. See eg. Daalhuis' presentation at NIST
+(https://dlmf.nist.gov/15.17) for more information.
+It can be solved using the `R`  interface to its implementation
+in the "GNU Scientific Library", specifically the function `gsl::hyperg_2F1`. 
+However, (fast) convergence is only guaranteed for $|z|<1$, and may fail for certain
+combinations of the other parameters. For our model $z<0$ is always true, but
+$|z|$ can become very large, eg. it is exponential with $t$, and inversely
+proportional to $I_0$. We use the transformation provided by @Forrey1997:
+
+```{r, eval=FALSE}
+library(gsl)
+Gauss2F1_forrey <- function(a,b,c,z){
+  if( abs(z) < 1 ) 
+    y <- hyperg_2F1(a, b, c, z)
+  else {
+    w <- 1/(1-z)
+    A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*hyperg_2F1(a,c-b,a-b+1,w)
+    B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*hyperg_2F1(b,c-a,b-a+1,w)
+    y <- A+B
+  }
+  y
+}
+```
+
+An more efficient approach was suggested at `stackexchange` by
+St&eacute;phane Laurent:
+
+```{r, eval=FALSE}
+## https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
+Gauss2F1_laurent <- function(a,b,c,z){
+  if(z>=0 & z<1)
+    hyperg_2F1(a,b,c,z)
+  else
+    hyperg_2F1(c-a,b,c,1-1/(1-z))/(1-z)^b
+}
+```
+
 ## Implementation & Example
 
 The model was implemented in R, including a wrapper for required data
@@ -176,176 +346,6 @@ time**.  At low inducer concentration the signal (protein
 concentration) is higher when sampled at 24 h than at 48 h. At higher
 inducer concentration the maximal signal is seen later, and higher at
 48 h than at 24 h.
-
-## Parameter Fitting Strategy and Results
-
-We applied the following strategy to fit the various data
-sets:
-
-1. Calculate growth rate $\mu$ for all experiments,
-2. Calculate $\mu$ and $\beta =\mu + \delta_P$ from rhamnose step-down experiment to get
- $\delta_P$,
-3. Estimate $y_0$ and leaky rate $\ell$ from $I(0)=0$ (no inducer) data for each promoter,
-4. Fit $v$ and  $K$ from dose-response curves using a rough estimate of inducer
-half-life $\delta$,
-5. Use obtained parameters as initial values and fit half-lives $\delta$ from
-time-series experiments.
-<!-- 6. Iterate the above procedure until all shared parameters converge. -->
-
-The data shown in the main manuscript were fitted using either the
-model for constant inducer (eq. \ref{eq:consti}) or the model with
-unstable inducer (eq. \ref{eq:vari}). The resulting fits are
-shown in the main manuscript figures. The following parameters were
-identified for fits with eq. \ref{eq:vari}:
-
-
-
-\begin{table}[ht]
-  \begin{tabular}{l|rr|rrr|rrr}
-    Promoter & $\mu$, h$^{-1}$ & $\delta_P$, h$^{-1}$ & $y_0$, a.u & $n$ & $\ell$, h$^{-1}$ &  $v$, h$^{-1}$ & $K$, $\mu$Mol & $\delta$, h$^{-1}$\\\hline
-    P$_\text{vanPP}$ &0.033 &0.064 & 0  &4&0   & 696.2& 96.3&0.031\\
-	P$_\text{L03}$   &0.033 &0.064 & 500&2&14.5&3562.2&101.9&0.068\\
-  \end{tabular}
-  \caption{Model Parameters}
-\end{table}
-
-
-
-## Appendix I: Induced Transcription with Constant Inducer
-
-The first order differential inhomogenous linear equation, 
-$$
-y'(t) + \beta y(t) = \alpha\,,
-$$ 
-can be solved by adding a particular solution $y_p$ of the inhomogenous
-equation and the general solution $y_h$ of the homogenous version of the equation 
-(with $\alpha=0$).
-
-The general solution is $y_h = C e^{-\beta t}$, and the particular solution
-is simply $y_p=\frac{\alpha}{\beta}$, and we get:
-
-$$
-y(t) = y_p+y_h = \frac{\alpha}{\beta} + C e^{-\beta t}\,.
-$$
-
-
-Assuming an initial condition $y(0)=y_0$ we further get $C=y_0-\frac{\alpha}{\beta}$, and
-
-$$
-y(t) = y_0 e^{-\beta t} + \frac{\alpha}{\beta} \left(1 - e^{-\beta t}\right)\,.
-$$
-
-## Appendix II: Induced Transcription with Inducer Half-Life
-
-Here the factor $\alpha$ itself is a function of time $t$,
-and can use the "Variation of the Constant" method, where the
-constant $C$ of the solution of the homogenous equation is replaced
-by a function $f(t)$, ie.
-
-\begin{equation}
-\label{eq:voc}
-y(t) = f(t)\,e^{-\beta t}
-\end{equation}
-
-Using this in the full equation, we get:
-
-$$
-f'(t) e^{-\beta t} + f(t) e^{-\beta t} (-\beta) + \beta f(t) e^{-\beta t} = \alpha(t)\,
-$$
-where two terms on the left-hand side cancel out, and we need to integrate to get $f(t)$:
-
-$$
-f(t) = \int \alpha(t) e^{\beta t} \text{d}t + C 
-$$
-
-Let's first make it simple, and assume a linear induction with $I\ll K$, with
-
-$$
-\alpha(t) \approx v \frac{I_0 e^{-\delta t}}{K}\,.
-$$
-This is comparatively easy to integrate and yields
-
-$$
-f(t) = \frac{v}{\beta - \delta} \frac{I_0}{K} e^{(\beta-\delta)t} + C\,.
-$$
-
-Again solving for $y(0)=y_0$ we obtain an expression for $C$
-and get:
-
-$$
-y(t) = y_0 e^{-\beta t} + \frac{v}{\beta - \delta} \frac{I_0}{K} \left( e^{-\delta t} - e^{-\beta t}\right)\,.
-$$
-
-Next, we attempt to integrate the more complex activation function:
-
-$$
-\begin{aligned}
-\alpha(t) =& \ell + v \frac{(I_0 e^{-\delta t})^n}{(I_0 e^{-\delta t})^n + K^n}\\
-f(t) =& \int \alpha(t) e^{\beta t} \text{d}t + C
-\end{aligned}
-$$
-
-At [Wolfram Alpha](https://www.wolframalpha.com/) (replacing $I_0$ by `A` and $t$ by `x`)\newline
-`integrate ( (l + v*A^n*e^(-d*n*x)/(A^n*e^(-d*n*x) + K^n))*e^(b*x))`
-yields\newline
-`(e^(b x) (v 2F1(1, b/(d n), b/(d n) + 1, -A^(-n) e^(d n x) K^n) + l))/b + constant`,\newline
-where $_2\text{F}_1$ is the hypergeometric function, ie.:
-
-\begin{equation}
-\label{eq:wasln}
-f(t) = \frac{e^{\beta t}}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) + C\,.
-\end{equation}
-
-We could not identify the applied integration rule in literature, but
-minimally, for $\beta\ne 1$: $\int \frac{e^{\beta t}}{1+e^t}
-\text{d}t= \frac{e^{\beta t}}{\beta}\,
-_2\text{F}_1(1,\beta;\beta+1;-e^t)$).
-
-Substituting eq. \ref{eq:wasln} in eq. \ref{eq:voc} and solving for $y(0)=y_0$, we get:
-
-$$
-y(t) = y_0 e^{-\beta t} + \frac{1}{\beta}\left( _2\text{F}_1\left(1,\frac{\beta}{n \delta};\frac{\beta}{n \delta}+1;-e^{n\delta t}\frac{K^n}{I_0^n}\right)v + l \right) (1- e^{-\beta t})\,.
-$$
-
-## Appendix III: The Hypergeometric Function
-
-The hypergeometric function $_2\text{F}_1$ is rather unusual but often turns up in
-solutions of differential equations. See eg. Daalhuis' presentation at NIST
-(https://dlmf.nist.gov/15.17) for more information.
-It can be solved using the `R`  interface to its implementation
-in the "GNU Scientific Library", specifically the function `gsl::hyperg_2F1`. 
-However, (fast) convergence is only guaranteed for $|z|<1$, and may fail for certain
-combinations of the other parameters. For our model $z<0$ is always true, but
-$|z|$ can become very large, eg. it is exponential with $t$, and inversely
-proportional to $I_0$. We use the transformation provided by @Forrey1997:
-
-```{r, eval=FALSE}
-library(gsl)
-Gauss2F1_forrey <- function(a,b,c,z){
-  if( abs(z) < 1 ) 
-    y <- hyperg_2F1(a, b, c, z)
-  else {
-    w <- 1/(1-z)
-    A <- w^a*gamma(c)*gamma(b-a)/(gamma(b)*gamma(c-a))*hyperg_2F1(a,c-b,a-b+1,w)
-    B <- w^b*gamma(c)*gamma(a-b)/(gamma(a)*gamma(c-b))*hyperg_2F1(b,c-a,b-a+1,w)
-    y <- A+B
-  }
-  y
-}
-```
-
-An more efficient approach was suggested at `stackexchange` by
-St&eacute;phane Laurent:
-
-```{r, eval=FALSE}
-## https://stats.stackexchange.com/questions/33451/computation-of-hypergeometric-function-in-r
-Gauss2F1_laurent <- function(a,b,c,z){
-  if(z>=0 & z<1)
-    hyperg_2F1(a,b,c,z)
-  else
-    hyperg_2F1(c-a,b,c,1-1/(1-z))/(1-z)^b
-}
-```
 
 # References
 <div id="refs"></div>
